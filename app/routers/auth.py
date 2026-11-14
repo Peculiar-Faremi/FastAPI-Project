@@ -11,18 +11,18 @@ router=APIRouter(
     tags=["Authentication"]
     )
 
-@router.post("/login", status_code=status.HTTP_200_OK)
+@router.post("/login", status_code=status.HTTP_200_OK,response_model=schemas.Token)
 def login(user_credentials: OAuth2PasswordRequestForm= Depends(), db: Session= Depends(get_db)):
     user = db.query (models.User).filter(models.User.email == user_credentials.username).first()
     if not user:
         raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid Credentials")
     if not verify_password(user_credentials.password, user.password):
-        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Inavlid Credentials")
+        raise HTTPException(status_code=status.HTTP_403_FORBIDDEN, detail="Invalid Credentials")
     access_token= oauth2.create_access_token(data={"user_id": user.id})
     refresh_token= oauth2.create_refresh_token(data={"user_id": user.id})
-    return {"access_token":access_token, "token_type":"bearer", "refresh_token": refresh_token}
+    return schemas.Token(access_token=access_token, token_type="bearer", refresh_token=refresh_token)
 
-@router.post("/refresh", status_code=status.HTTP_200_OK)
+@router.post("/refresh", status_code=status.HTTP_200_OK,response_model=schemas.Token)
 def refresh(refresh_request: schemas.RefreshRequest, db: Session= Depends(get_db)):
     credentials_exceptions=HTTPException(status_code=status.HTTP_401_UNAUTHORIZED,
                                           detail="Credentials could not be validated", headers={"WWW-Authenticate": "Bearer"})
@@ -31,4 +31,4 @@ def refresh(refresh_request: schemas.RefreshRequest, db: Session= Depends(get_db
     if user is None:
         raise credentials_exceptions
     access_token= oauth2.create_access_token(data={"user_id": user.id})
-    return {"access_token":access_token, "token_type":"bearer"}
+    return schemas.Token(access_token=access_token, token_type="bearer", refresh_token=refresh_request.refresh_token)

@@ -14,6 +14,6 @@ app.include_router(products.router)
 app.include_router(users.router)
 app.include_router(auth.router)
 
-app.router.get("/")
+@app.get("/")
 def root():
     return {"message":"Hello World"}
