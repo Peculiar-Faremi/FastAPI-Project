@@ -1,3 +1,5 @@
+import pytest
+
 def test_get_all_products(authorized_client):
     response = authorized_client.get("/products/getall")
     assert response.status_code == 200
@@ -63,3 +65,16 @@ def test_order_product(authorized_client,test_user):
     response = authorized_client.post(f"/products/order/{product_id}")
     assert response.status_code == 201
     assert response.json()["message"] == "Order placed successfully"
+
+@pytest.mark.parametrize("method, endpoint", [
+    ("GET", "/products/getall"),
+    ("POST", "/products/post"),
+    ("PUT", "/products/update/1"),
+    ("DELETE", "/products/delete/1"),
+    ("POST", "/products/order/1")  
+])
+def test_unauthorized_access(client, method, endpoint):
+    # client.request() lets me pass the method dynamically as a string
+    response = client.request(method, endpoint)
+    assert response.status_code == 401
+    assert response.json()["detail"] == "Not authenticated"

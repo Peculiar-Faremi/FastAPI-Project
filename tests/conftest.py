@@ -3,10 +3,11 @@ from app.main import app
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, declarative_base
 import pytest
+from app.config import settings
 from app import oauth2
 from app.database import get_db, Base
 #i created a branch from neon for the test database and got a new url for it so it won't touch my development database.
-SQLALCHEMY_DATABASE_URL = "postgresql+psycopg2://neondb_owner:npg_f4bW1XvxjGKn@ep-delicate-pond-bd4muuoj-pooler.c-8.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require"
+SQLALCHEMY_DATABASE_URL = settings.TEST_DATABASE_URL
 engine = create_engine(SQLALCHEMY_DATABASE_URL)
 TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine, expire_on_commit=False)
 
