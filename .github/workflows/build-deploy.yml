@@ -28,7 +28,7 @@ jobs:
           pytest
   build:
     needs: test #only start if "test" passed
-    DISABLED: build paused to save Docker Hub storage.
+    #DISABLED: build paused to save Docker Hub storage.
     # To re-enable, replace "if: false" with:
     # if: github.ref == 'refs/heads/main' && github.event_name == 'push'
     if: false
