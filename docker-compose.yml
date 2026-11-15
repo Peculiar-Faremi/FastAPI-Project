@@ -1,10 +1,7 @@
 services:
   app:
-    build: .
-    image: pecsfar/fastapi-project:v1.0.0
+    image: pecsfar/fastapi-project:latest
     ports:
-      - "8000:8000"
-    volumes:
-      - ./:/usr/src/app:ro #this is used for development when you want to sync latest code changes to your docker container 
+      - "8000:8000" 
     env_file:
       - .env
