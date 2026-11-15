@@ -46,8 +46,6 @@ def get_all_products(db: Session, user_id:int, skip: int=0, limit: int=10, searc
         query=query.filter(models.Product.name.ilike(f"%{search}%") #searching for keywords in the product name or description using ilike for case-insensitive search
                            | models.Product.description.ilike(f"%{search}%"))
     products = query.offset(skip).limit(limit).all() #applied pagination using offset and limit in the query
-    if not products:
-        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="No products found")
     return [build_product(p) for p in products] 
 
 
