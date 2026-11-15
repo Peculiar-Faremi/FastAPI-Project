@@ -58,4 +58,11 @@ jobs:
       - name: Image Digest
         run: |
           echo ${{steps.docker_build.outputs.digest}}
+  deploy:
+    needs: test
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Trigger Render deploy
+        run: curl -X POST "${{ secrets.RENDER_DEPLOY_HOOK }}"
            
