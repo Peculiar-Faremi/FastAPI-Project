@@ -12,6 +12,7 @@ jobs:
       ACCESS_TOKEN_EXPIRE_MINUTES: 30
       REFRESH_TOKEN_EXPIRE_DAYS: 2
       ALGORITHM: HS256
+      REDIS_URL: redis://localhost:6379/0
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
@@ -26,6 +27,17 @@ jobs:
       - name: Run tests
         run: |
           pytest
+    services:
+      redis:
+        image: redis  # starts a Redis container for the tests
+        ports:
+          - 6379:6379  # same door as on your laptop
+        # before the steps start, so tests don't run against a Redis that isn't ready
+        options: >-  #makes GitHub wait until Redis answers a ping
+          --health-cmd "redis-cli ping"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
   build:
     needs: test #only start if "test" passed
     #DISABLED: build paused to save Docker Hub storage.

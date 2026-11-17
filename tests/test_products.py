@@ -1,4 +1,24 @@
 import pytest
+from app.redis_client import r
+
+URLS = ["/products/getall", "/products/get/{id}"]  # both routes to test
+
+def cache_keys():
+    return list(r.scan_iter("products:user:*"))  # everything cached
+
+@pytest.mark.parametrize("url", URLS)  # runs once per URL
+def test_read_fills_cache(authorized_client, product_id, url):
+    assert cache_keys() == []  # cache starts empty
+    authorized_client.get(url.format(id=product_id))
+    assert len(cache_keys()) == 1  # one read, one cached entry
+
+@pytest.mark.parametrize("url", URLS)
+def test_update_clears_cache(authorized_client, product_id, url):
+    authorized_client.get(url.format(id=product_id))  # fills the cache
+    assert len(cache_keys()) == 1
+    authorized_client.put(f"/products/update/{product_id}", json={"name": "Test Product", "details": {"description": "A product for testing"}, "price": 999})  # your update payload
+    assert cache_keys() == []  # cache cleared
+
 
 def test_get_all_products(authorized_client):
     response = authorized_client.get("/products/getall")

@@ -1,8 +1,16 @@
 from fastapi import FastAPI
 from app.routers import products, users,auth
 from fastapi.middleware.cors import CORSMiddleware
+from contextlib import asynccontextmanager
+from app.redis_client import r
 
-app=FastAPI()
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    yield
+    r.close() #it hands the connection back
+    r.connection_pool.disconnect() #it actually closes every socket in the pool.
+
+app=FastAPI(lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
