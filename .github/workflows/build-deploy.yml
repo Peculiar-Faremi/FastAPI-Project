@@ -13,6 +13,7 @@ jobs:
       REFRESH_TOKEN_EXPIRE_DAYS: 2
       ALGORITHM: HS256
       REDIS_URL: redis://localhost:6379/0
+      TEST_REDIS_URL: redis://localhost:6379/1
     steps:
       - name: Checkout code
         uses: actions/checkout@v5
