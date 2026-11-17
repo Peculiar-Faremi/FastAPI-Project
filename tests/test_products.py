@@ -1,5 +1,6 @@
 import pytest
 from app.redis_client import r
+from app.rate_limit import limit_requests
 
 URLS = ["/products/getall", "/products/get/{id}"]  # both routes to test
 
@@ -98,3 +99,26 @@ def test_unauthorized_access(client, method, endpoint):
     response = client.request(method, endpoint)
     assert response.status_code == 401
     assert response.json()["detail"] == "Not authenticated"
+
+@pytest.mark.parametrize("route", [
+    "/products/getall",
+    "/products/get/{id}"
+])
+def test_get_routes_rate_limiting(authorized_client, product_id, route):
+    # Format the route (injects the product_id if the route has {id})
+    formatted_route = route.format(id=product_id)
+
+    #Hit the route 5 times (These should all succeed)
+    for i in range(5):
+        response = authorized_client.get(formatted_route)
+        
+        assert response.status_code == 200, f"Dev Debug: Failed on attempt {i+1} for {formatted_route}"
+
+    # Hit the route a 6th time (This should trigger the bouncer)
+    response = authorized_client.get(formatted_route)
+    
+    # Verify the bouncer stopped us with a 429 Too Many Requests
+    assert response.status_code == 429
+    
+    # Verify the user gets the correct, generic error message
+    assert "Too many requests" in response.json()["detail"]

@@ -10,7 +10,7 @@ async def lifespan(app: FastAPI):
     r.close() #it hands the connection back
     r.connection_pool.disconnect() #it actually closes every socket in the pool.
 
-app=FastAPI(lifespan=lifespan)
+app=FastAPI(lifespan=lifespan) #use the lifespan function defined above
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],

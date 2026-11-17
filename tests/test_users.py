@@ -28,7 +28,33 @@ def test_login_user(client, test_user):
 def test_incorrect_login(client, test_user,email,password,status_code):
     response=client.post("/login", data={"username": email, "password":password})
     assert response.status_code==status_code
+
+def test_login_ip_rate_limit(client):
+    for i in range(6):
+        response = client.post(
+            "/login",
+            data={"username": f"fake{i}@test.com", "password": "wrongpassword"}
+        )
+        if i < 5:
+            assert response.status_code == 403
+             
+    assert response.status_code == 429
+    assert "Too many login attempts from this IP" in response.json()["detail"]
+
+
+def test_login_email_fail_limit(client): 
+    fake_email = "victim@test.com"
      
-
-
- 
+    for i in range(4):
+        response = client.post(
+            "/login",
+            data={"username": fake_email, "password": "wrongpassword"}
+        )
+        assert response.status_code == 403 
+    # On the 5th attempt, the email Vault Guard locks it!
+    response = client.post(
+        "/login",
+        data={"username": fake_email, "password": "wrongpassword"}
+    )
+    assert response.status_code == 429
+    assert "Too many failed attempts for this account" in response.json()["detail"]
